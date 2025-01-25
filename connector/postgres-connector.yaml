@@ -1,0 +1,37 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: debezium-connector-postgres
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: debezium-connect-cluster
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  config:
+    tasks.max: 1
+    database.hostname: ${secrets:kafka/debezium-secret:dbhost}
+    database.port: 5432
+    database.user: ${secrets:kafka/debezium-secret:username}
+    database.password: ${secrets:kafka/debezium-secret:password}
+    database.dbname: postgres
+    database.ssl: true
+    database.sslmode: "require"
+    topic.prefix: test_table
+    plugin.name: pgoutput
+    publication.autocreate.mode: filtered
+    table.include.list: public.test_table
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+    snapshot.mode: always
+    message.key.columns: public.test_table:id
+    transforms: unwrap
+    transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
+    transforms.unwrap.add.fields: op:_meta_op,table:_meta_table,lsn:_meta_lsn,source.ts_ms:_meta_event_ts,schema:_meta_schema
+    transforms.unwrap.add.headers: db
+    transforms.unwrap.delete.handling.mode: rewrite
+    delete.tombstone.handling.mode: rewrite
+    converters: timestampConverter,
+    timestampConverter.type: oryanmoshe.kafka.connect.util.TimestampConverter
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter

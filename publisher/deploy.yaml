@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: insert-data-rds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: insert-data-rds
+  template:
+    metadata:
+      labels:
+        app: insert-data-rds
+    spec:
+      containers:
+      - name: insert-data-rds
+        image: hieupham0607/debezium-publisher:latest
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "debezium-demo.c74k4egouhxc.us-east-1.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "postgres"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          value: "nZh2mXMD9uRrXfJctV71"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Starting insert-data-rds job..."
+          # Run your main script or command
+          python app.py
+          # Keep the container running after completion
+          while true; do sleep 30; done
+
+# psql -h debezium-demo.cootgowfrctk.us-east-1.rds.amazonaws.com -U postgres -d postgres

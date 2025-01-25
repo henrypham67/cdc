@@ -1,0 +1,7 @@
+.kubeconfig
+.terraform
+.terraform.lock.hcl
+tf.auto.tfvars
+terraform.tfstate
+terraform.tfstate.backup
+connector/plugins/
