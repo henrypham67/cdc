@@ -4,4 +4,4 @@
 tf.auto.tfvars
 terraform.tfstate
 terraform.tfstate.backup
-connector/plugins/
+plugins/
