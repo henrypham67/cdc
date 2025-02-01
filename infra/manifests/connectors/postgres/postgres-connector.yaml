@@ -10,10 +10,10 @@ spec:
   tasksMax: 1
   config:
     tasks.max: 1
-    database.hostname: ${secrets:kafka/debezium-secret:dbhost}
+    database.hostname: $${secrets:kafka/postgres-secret:host}
     database.port: 5432
-    database.user: ${secrets:kafka/debezium-secret:username}
-    database.password: ${secrets:kafka/debezium-secret:password}
+    database.user: $${secrets:kafka/postgres-secret:username}
+    database.password: $${secrets:kafka/postgres-secret:password}
     database.dbname: postgres
     database.ssl: true
     database.sslmode: "require"
