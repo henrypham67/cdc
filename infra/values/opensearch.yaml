@@ -1,0 +1,10 @@
+extraEnvs:
+  - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+    value: nZh2mXMD9uRrXfJctV71
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ebs-sc
+
+replicas: 1
