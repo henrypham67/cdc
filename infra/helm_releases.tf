@@ -36,3 +36,26 @@ resource "helm_release" "kube-prometheus-stack" {
     file("${path.module}/values/kube-prometheus-stack.yaml")
   ]
 }
+
+locals {
+  mongo={
+    USER=local.name
+    PWD=var.db_password
+    DB=local.name
+  }
+}
+
+resource "helm_release" "mongodb" {
+  depends_on = [module.eks]
+
+  name             = "mongodb"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "mongodb"
+  version          = "16.4.3"
+  namespace        = "mongodb"
+  create_namespace = true
+
+  values = [
+    templatefile("${path.module}/values/mongodb.yaml", local.mongo)
+  ]
+}

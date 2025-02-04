@@ -1,0 +1,10 @@
+auth:
+  rootPassword: 
+  username: ${USER}
+  password: ${PWD}
+  database: ${DB}
+persistence:
+  enabled: true
+  size: 10Gi
+service:
+  type: ClusterIP
