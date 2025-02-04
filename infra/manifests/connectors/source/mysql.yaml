@@ -1,0 +1,35 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: mysql
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: debezium-connect-cluster
+spec:
+  class: io.debezium.connector.mysql.MySqlConnector
+  tasksMax: 1
+  config:
+    tasks.max: 1
+    database.hostname: $${secrets:kafka/mysql-secret:host}
+    database.port: 3306
+    database.user: $${secrets:kafka/mysql-secret:username}
+    database.password: $${secrets:kafka/mysql-secret:password}
+    database.dbname: debezium
+    database.ssl: true
+    database.sslmode: "require"
+    topic.prefix: mysql
+    plugin.name: pgoutput
+    publication.autocreate.mode: filtered
+    table.include.list: public.test_table
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+    snapshot.mode: always
+    message.key.columns: public.test_table:id
+    transforms: unwrap
+    transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
+    transforms.unwrap.add.fields: op:_meta_op,table:_meta_table,lsn:_meta_lsn,source.ts_ms:_meta_event_ts,schema:_meta_schema
+    transforms.unwrap.add.headers: db
+    transforms.unwrap.delete.handling.mode: rewrite
+    delete.tombstone.handling.mode: rewrite
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter

@@ -1,0 +1,60 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: debezium-connect-cluster
+  namespace: kafka
+  annotations:
+    strimzi.io/use-connector-resources: "true"  
+spec:
+  version: 3.9.0
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  config:
+    config.providers: secrets
+    config.providers.secrets.class: io.strimzi.kafka.KubernetesSecretConfigProvider
+    group.id: connect-cluster
+    config.storage.topic: connect-cluster-configs
+    offset.storage.topic: connect-cluster-offsets
+    status.storage.topic: connect-cluster-status
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+  resources:
+    # requests:
+    #   cpu: "500m"
+    #   memory: "2Gi"
+    limits:
+      cpu: "3000m"
+      memory: "6Gi"
+  jvmOptions:
+    -Xms: "2G"
+    -Xmx: "4G"
+  build:
+    output:
+      type: docker
+      image: hieupham0607/debezium-connect:all
+      pushSecret: dockerhub
+    plugins:
+      - name: debezium-postgres-connector
+        artifacts:
+          - type: "tgz"
+            url: "https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/3.0.7.Final/debezium-connector-postgres-3.0.7.Final-plugin.tar.gz"
+          - type: "jar"
+            url: "https://github.com/oryanmoshe/debezium-timestamp-converter/releases/download/v1.2.4/TimestampConverter-1.2.4-SNAPSHOT.jar"
+      - name: debezium-mysql-connector
+        artifacts:
+          - type: "tgz"
+            url: "https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/3.0.7.Final/debezium-connector-mysql-3.0.7.Final-plugin.tar.gz"
+      - name: debezium-mongodb-connector
+        artifacts:
+          - type: "tgz"
+            url: "https://repo1.maven.org/maven2/io/debezium/debezium-connector-mongodb/3.0.7.Final/debezium-connector-mongodb-3.0.7.Final-plugin.tar.gz"
+      - name: opensearch-sink-connector
+        artifacts:
+          - type: "zip"
+            url: "https://github.com/Aiven-Open/opensearch-connector-for-apache-kafka/releases/download/v3.1.1/opensearch-connector-for-apache-kafka-3.1.1.zip"
+  template:
+    connectContainer:
+      env:
+        - name: CONNECT_HEAP_OPTS
+          value: "-Xms2G -Xmx4G"

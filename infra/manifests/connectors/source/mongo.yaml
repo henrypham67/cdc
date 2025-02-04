@@ -1,0 +1,26 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: mongodb
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: debezium-connect-cluster
+spec:
+  class: io.debezium.connector.mongodb.MongoDbConnector
+  tasksMax: 1
+  config:
+    mongodb.hosts: $${secrets:kafka/postgres-secret:host}
+    mongodb.user: $${secrets:kafka/postgres-secret:user}
+    mongodb.password: $${secrets:kafka/postgres-secret:password}
+    mongodb.auth.source: $${secrets:kafka/postgres-secret:auth}
+    mongodb.ssl.enabled: true
+    topic.prefix: mongodb-debezium
+    collection.include.list: "mydatabase.users, mydatabase.orders"
+    snapshot.mode: always
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+    transforms: unwrap
+    transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
+    transforms.unwrap.add.fields: op:_meta_op,table:_meta_table,lsn:_meta_lsn,source.ts_ms:_meta_event_ts,schema:_meta_schema
