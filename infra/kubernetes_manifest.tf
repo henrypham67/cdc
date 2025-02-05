@@ -1,16 +1,74 @@
-# resource "kubernetes_manifest" "manifests" {
-#   depends_on = [ module.eks, helm_release.strimzi-kafka-operator ]
+locals {
+  db_name = replace(local.name, "-", "_")
+}
 
-#   for_each = {
-#     sc        = file("${path.module}/../kafka/sc.yaml")
-#     cluster   = file("${path.module}/../kafka/kafka-cluster.yaml")
-#     pool   = file("${path.module}/../kafka/pool.yaml")
-#     secret    = templatefile("${path.module}/../kafka/db-secret.yaml", { DB_HOST = module.db.db_instance_address })
-#     role      = file("${path.module}/../kafka/db-role.yaml")
-#     rolebinding      = file("${path.module}/../kafka/db-rolebinding.yaml")
-#     connect   = file("${path.module}/../connector/debezium-connect.yaml")
-#     connector = file("${path.module}/../connector/postgres-connector.yaml")
-#   }
+resource "kubectl_manifest" "secrets" {
+  depends_on = [module.eks, module.mysql_db, module.postgres_db]
 
-#   manifest = yamldecode(each.value)
-# }
+  for_each = {
+    docker-hub = templatefile("${path.module}/manifests/secrets/docker-hub.yaml", {
+      DOCKER_SECRET = var.docker_hub
+    })
+    pg-secret = templatefile("${path.module}/manifests/secrets/sql.yaml", {
+      name    = "postgres-secret"
+      DB_HOST = module.postgres_db.db_instance_address
+      DB_USER = module.postgres_db.db_instance_username
+      DB_PWD  = base64encode(var.db_password)
+      DB_NAME = local.db_name
+      DB_PORT = module.postgres_db.db_instance_port
+    })
+    mysql-secret = templatefile("${path.module}/manifests/secrets/sql.yaml", {
+      name    = "mysql-secret"
+      DB_HOST = module.mysql_db.db_instance_address
+      DB_USER = module.mysql_db.db_instance_username
+      DB_PWD  = base64encode(var.db_password)
+      DB_NAME = local.db_name
+      DB_PORT = module.mysql_db.db_instance_port
+    })
+    mongo-secret = templatefile("${path.module}/manifests/secrets/mongo.yaml", {
+      name = "mongo-secret"
+      DB_HOST = module.mongo_db.db_instance_address
+      DB_USER = module.mongo_db.db_instance_username
+      DB_PWD  = base64encode(var.db_password)
+      DB_AUTH = "admin"
+    })
+    opensearch-secret = templatefile("${path.module}/manifests/secrets/opensearch.yaml", {
+      DB_HOST = module.opensearch_db.db_instance_address
+      DB_USER = module.opensearch_db.db_instance_username
+      DB_PWD  = base64encode(var.db_password)
+    })
+  }
+  yaml_body = each.value
+}
+
+data "kubectl_path_documents" "kafka-connects" {
+  pattern = "${path.module}/manifests/connectors/**/*.yaml"
+  vars = {
+    cluster_name = module.eks.cluster_name
+  }
+}
+
+data "kubectl_path_documents" "db" {
+  pattern = "${path.module}/manifests/db/*.yaml"
+  vars = {
+    cluster_name = module.eks.cluster_name
+  }
+}
+
+data "kubectl_path_documents" "kafka" {
+  pattern = "${path.module}/manifests/kafka/*.yaml"
+  vars = {
+    cluster_name = module.eks.cluster_name
+  }
+}
+
+resource "kubectl_manifest" "kafka" {
+  depends_on = [module.eks, helm_release.strimzi-kafka-operator]
+
+  for_each = merge(
+    data.kubectl_path_documents.db.manifests,
+    data.kubectl_path_documents.kafka.manifests,
+    data.kubectl_path_documents.kafka-connects.manifests
+  )
+  yaml_body = each.value
+}
