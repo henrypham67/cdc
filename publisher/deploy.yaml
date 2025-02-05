@@ -1,40 +1,79 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: insert-data-rds
+  name: insert-data-db
+  namespace: kafka
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: insert-data-rds
+      app: insert-data-db
   template:
     metadata:
       labels:
-        app: insert-data-rds
+        app: insert-data-db
     spec:
       containers:
-      - name: insert-data-rds
+      - name: insert-data-db
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 500m
         image: hieupham0607/debezium-publisher:latest
         imagePullPolicy: Always
         env:
-        - name: DB_HOST
-          value: "debezium-demo.c74k4egouhxc.us-east-1.rds.amazonaws.com"
         - name: DB_PORT
           value: "5432"
         - name: DB_NAME
           value: "postgres"
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: host
         - name: DB_USER
-          value: "postgres"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
         - name: DB_PASSWORD
-          value: "nZh2mXMD9uRrXfJctV71"
-        command:
-        - /bin/sh
-        - -c
-        - |
-          echo "Starting insert-data-rds job..."
-          # Run your main script or command
-          python app.py
-          # Keep the container running after completion
-          while true; do sleep 30; done
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
 
-# psql -h debezium-demo.cootgowfrctk.us-east-1.rds.amazonaws.com -U postgres -d postgres
+        - name: MYSQL_HOST
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: host
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: MYSQL_DB
+          value: "mysql"
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: host
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-password
+
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: host
+        - name: MONGO_DB
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: host
+        - name: MONGO_COLLECTION
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: host
