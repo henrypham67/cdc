@@ -1,9 +1,11 @@
 module "eks" {
+  depends_on = [module.vpc]
+
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.31"
 
   cluster_name                   = local.name
-  cluster_version                = "1.31"
+  cluster_version                = "1.32"
   cluster_endpoint_public_access = true
 
   enable_cluster_creator_admin_permissions = true
@@ -38,11 +40,10 @@ module "eks" {
       ami_type      = "AL2_x86_64"
       instance_type = "t3.medium"
 
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
+      min_size     = 3
+      max_size     = 5
+      desired_size = 3
       iam_role_additional_policies = {
-        ssm_policy = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
         ebs_policy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
       }
     }
