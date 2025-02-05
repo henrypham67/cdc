@@ -38,10 +38,10 @@ resource "helm_release" "kube-prometheus-stack" {
 }
 
 locals {
-  mongo={
-    USER=local.name
-    PWD=var.db_password
-    DB=local.name
+  mongo = {
+    USER = local.name
+    PWD  = var.db_password
+    DB   = local.name
   }
 }
 
@@ -49,8 +49,8 @@ resource "helm_release" "mongodb" {
   depends_on = [module.eks]
 
   name             = "mongodb"
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "mongodb"
+  repository       = "oci://registry-1.docker.io/bitnamicharts"
+  chart            = "mongodb"
   version          = "16.4.3"
   namespace        = "mongodb"
   create_namespace = true
