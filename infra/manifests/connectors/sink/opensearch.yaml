@@ -1,61 +1,18 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaConnector
 metadata:
-  name: debezium-connector-mysql
+  name: opensearch-sink
   namespace: kafka
   labels:
     strimzi.io/cluster: debezium-connect-cluster
 spec:
-  class: io.debezium.connector.mysql.MySqlConnector
-  tasksMax: 1
-  config:
-    tasks.max: 1
-    database.hostname: $${secrets:kafka/mysql-secret:host}
-    database.port: 3306
-    database.user: $${secrets:kafka/mysql-secret:username}
-    database.password: $${secrets:kafka/mysql-secret:password}
-    database.dbname: mysql
-    database.ssl: true
-    database.sslmode: "require"
-    topic.prefix: test_table
-    plugin.name: pgoutput
-    publication.autocreate.mode: filtered
-    table.include.list: public.test_table
-    key.converter.schemas.enable: false
-    value.converter.schemas.enable: false
-    snapshot.mode: always
-    message.key.columns: public.test_table:id
-    transforms: unwrap
-    transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
-    transforms.unwrap.add.fields: op:_meta_op,table:_meta_table,lsn:_meta_lsn,source.ts_ms:_meta_event_ts,schema:_meta_schema
-    transforms.unwrap.add.headers: db
-    transforms.unwrap.delete.handling.mode: rewrite
-    delete.tombstone.handling.mode: rewrite
-    key.converter: org.apache.kafka.connect.json.JsonConverter
-    value.converter: org.apache.kafka.connect.json.JsonConverter
-
-
----
-
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaConnector
-metadata:
-  name: opensearch-sink-connector
-  namespace: kafka
-  labels:
-    strimzi.io/cluster: ramanuj-connect-cluster
-spec:
   class: io.aiven.kafka.connect.opensearch.OpensearchSinkConnector
   tasksMax: 1
   config:
-    topics: crm_cdc.public.customer_records
-    connection.url: https://opensearch-cluster-master.opensearch.svc.cluster.local:9200
-    connection.username: ${file:/opt/kafka/external-configuration/opensearch-secret/opensearch.properties:user}
-    connection.password: ${file:/opt/kafka/external-configuration/opensearch-secret/opensearch.properties:password}
-    ssl.truststore.location: /opt/kafka/external-configuration/opensearch-truststore-secret/esnode.jks
-    ssl.truststore.password: ${file:/opt/kafka/external-configuration/opensearch-secret/opensearch.properties:password}
-    security.protocol: SSL
-    ssl.endpoint.identification.algorithm: ""
+    topics: mysql.public.test_table,postgres.public.test_table,
+    connection.url: $${secrets:kafka/opensearch-secret:host} # https://opensearch-cluster-master.opensearch.svc.cluster.local:9200
+    connection.username: $${secrets:kafka/opensearch-secret:user}
+    connection.password: $${secrets:kafka/opensearch-secret:password}
     key.ignore: "false"
     schema.ignore: "false"
     connect.timeout.ms: 10000
@@ -67,5 +24,5 @@ spec:
     errors.retry.delay.max.ms: "5000"
     errors.log.enable: "true"
     errors.log.include.messages: "true"
-    errors.deadletterqueue.topic.name: "crm-cdc-customer-records-dlq"
+    errors.deadletterqueue.topic.name: "opensearch-records-dlq"
     errors.deadletterqueue.context.headers.enable: "true"

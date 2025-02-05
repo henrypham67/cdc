@@ -11,13 +11,13 @@ spec:
   config:
     tasks.max: 1
     database.hostname: $${secrets:kafka/postgres-secret:host}
-    database.port: 5432
+    database.port: $${secrets:kafka/postgres-secret:port}
     database.user: $${secrets:kafka/postgres-secret:username}
     database.password: $${secrets:kafka/postgres-secret:password}
-    database.dbname: postgres
+    database.dbname: $${secrets:kafka/postgres-secret:db}
     database.ssl: true
     database.sslmode: "require"
-    topic.prefix: test_table
+    topic.prefix: postgres
     plugin.name: pgoutput
     publication.autocreate.mode: filtered
     table.include.list: public.test_table

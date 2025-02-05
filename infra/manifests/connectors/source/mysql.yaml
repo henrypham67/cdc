@@ -11,10 +11,10 @@ spec:
   config:
     tasks.max: 1
     database.hostname: $${secrets:kafka/mysql-secret:host}
-    database.port: 3306
+    database.port: $${secrets:kafka/mysql-secret:port}
     database.user: $${secrets:kafka/mysql-secret:username}
     database.password: $${secrets:kafka/mysql-secret:password}
-    database.dbname: debezium
+    database.dbname: $${secrets:kafka/mysql-secret:db}
     database.ssl: true
     database.sslmode: "require"
     topic.prefix: mysql
