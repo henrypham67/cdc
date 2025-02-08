@@ -8,20 +8,6 @@ resource "helm_release" "strimzi-kafka-operator" {
   create_namespace = true
 }
 
-resource "helm_release" "opensearch" {
-  depends_on = [module.eks]
-
-  name             = "opensearch"
-  repository       = "https://opensearch-project.github.io/helm-charts/"
-  chart            = "opensearch"
-  namespace        = "opensearch"
-  create_namespace = true
-
-  values = [
-    file("${path.module}/values/opensearch.yaml")
-  ]
-}
-
 resource "helm_release" "kube-prometheus-stack" {
   depends_on = [module.eks]
 
@@ -42,6 +28,14 @@ locals {
     USER = local.name
     PWD  = var.db_password
     DB   = local.name
+    HOST = "mongodb.svc.cluster.local"
+  }
+
+  opensearch = {
+    USER = "admin"
+    PWD  = var.db_password
+    DB   = local.name
+    HOST = "opensearch-cluster-master.svc.cluster.local"
   }
 }
 
@@ -57,5 +51,19 @@ resource "helm_release" "mongodb" {
 
   values = [
     templatefile("${path.module}/values/mongodb.yaml", local.mongo)
+  ]
+}
+
+resource "helm_release" "opensearch" {
+  depends_on = [module.eks]
+
+  name             = "opensearch"
+  repository       = "https://opensearch-project.github.io/helm-charts/"
+  chart            = "opensearch"
+  namespace        = "opensearch"
+  create_namespace = true
+
+  values = [
+    templatefile("${path.module}/values/opensearch.yaml", local.opensearch)
   ]
 }
