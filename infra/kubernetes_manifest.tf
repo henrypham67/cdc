@@ -6,6 +6,7 @@ resource "kubectl_manifest" "secrets" {
   depends_on = [module.eks, module.mysql_db, module.postgres_db]
 
   for_each = {
+    # This is used to push newly created KafkaConnect Docker image
     docker-hub = templatefile("${path.module}/manifests/secrets/docker-hub.yaml", {
       DOCKER_SECRET = var.docker_hub
     })
@@ -27,15 +28,15 @@ resource "kubectl_manifest" "secrets" {
     })
     mongo-secret = templatefile("${path.module}/manifests/secrets/mongo.yaml", {
       name = "mongo-secret"
-      DB_HOST = module.mongo_db.db_instance_address
-      DB_USER = module.mongo_db.db_instance_username
-      DB_PWD  = base64encode(var.db_password)
+      DB_HOST = local.mongo.HOST
+      DB_USER = local.mongo.USER
+      DB_PWD  = base64encode(local.mongo.PWD)
       DB_AUTH = "admin"
     })
     opensearch-secret = templatefile("${path.module}/manifests/secrets/opensearch.yaml", {
-      DB_HOST = module.opensearch_db.db_instance_address
-      DB_USER = module.opensearch_db.db_instance_username
-      DB_PWD  = base64encode(var.db_password)
+      DB_HOST = local.opensearch.HOST
+      DB_USER = local.opensearch.USER
+      DB_PWD  = base64encode(local.opensearch.PWD)
     })
   }
   yaml_body = each.value
