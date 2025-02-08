@@ -6,5 +6,7 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    resourceNames: ["postgres-secret"]
+    resourceNames: ["postgres-secret", "mongo-secret", "opensearch-secret", "mysql-secret"]
     verbs: ["get"]
+
+    # psql -h debezium-demo-postgres.cjo4ko044lu6.us-east-1.rds.amazonaws.com -U postgres

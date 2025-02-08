@@ -1,6 +1,6 @@
 extraEnvs:
   - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-    value: nZh2mXMD9uRrXfJctV71
+    value: ${PWD}
 
 persistence:
   enabled: true

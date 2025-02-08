@@ -59,8 +59,8 @@ spec:
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-secret
-              key: mysql-password
+              name: mysql-secret
+              key: password
 
         - name: MONGO_URI
           valueFrom:
