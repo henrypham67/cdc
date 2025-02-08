@@ -6,3 +6,8 @@ grafana:
 
 nodeExporter:
   enabled: false
+
+prometheus:
+  prometheusSpec:
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
