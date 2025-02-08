@@ -9,10 +9,9 @@ spec:
   class: io.debezium.connector.mongodb.MongoDbConnector
   tasksMax: 1
   config:
-    mongodb.hosts: $${secrets:kafka/postgres-secret:host}
-    mongodb.user: $${secrets:kafka/postgres-secret:user}
-    mongodb.password: $${secrets:kafka/postgres-secret:password}
-    mongodb.auth.source: $${secrets:kafka/postgres-secret:auth}
+    mongodb.connection.string: $${secrets:kafka/opensearch-secret:connectionString}
+    mongodb.user: $${secrets:kafka/opensearch-secret:user}
+    mongodb.password: $${secrets:kafka/opensearch-secret:password}
     mongodb.ssl.enabled: true
     topic.prefix: mongodb-debezium
     collection.include.list: "mydatabase.users, mydatabase.orders"

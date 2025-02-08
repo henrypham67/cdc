@@ -33,3 +33,6 @@ spec:
     delete.tombstone.handling.mode: rewrite
     key.converter: org.apache.kafka.connect.json.JsonConverter
     value.converter: org.apache.kafka.connect.json.JsonConverter
+    
+    # is a unique numeric identifier used by MySQL replication to distinguish servers in a replication topology
+    database.server.id: "19990607" 

@@ -28,14 +28,14 @@ locals {
     USER = local.name
     PWD  = var.db_password
     DB   = local.name
-    HOST = "mongodb.svc.cluster.local"
+    CONNECT_STRING = "mongodb://mongodb.mongodb.svc.cluster.local27017"
   }
 
   opensearch = {
     USER = "admin"
     PWD  = var.db_password
     DB   = local.name
-    HOST = "opensearch-cluster-master.svc.cluster.local"
+    HOST = "opensearch-cluster-master.opensearch.svc.cluster.local"
   }
 }
 

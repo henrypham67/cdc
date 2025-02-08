@@ -28,10 +28,9 @@ resource "kubectl_manifest" "secrets" {
     })
     mongo-secret = templatefile("${path.module}/manifests/secrets/mongo.yaml", {
       name = "mongo-secret"
-      DB_HOST = local.mongo.HOST
+      DB_CONNECT_STRING = local.mongo.CONNECT_STRING
       DB_USER = local.mongo.USER
       DB_PWD  = base64encode(local.mongo.PWD)
-      DB_AUTH = "admin"
     })
     opensearch-secret = templatefile("${path.module}/manifests/secrets/opensearch.yaml", {
       DB_HOST = local.opensearch.HOST
