@@ -7,6 +7,8 @@ PLUGIN_URL = https://repo1.maven.org/maven2/io/debezium/debezium-connector-postg
 PLUGIN_FILE = debezium-connector-postgres-plugin.tar.gz
 
 TIMECONVERTER_URL = https://github.com/oryanmoshe/debezium-timestamp-converter/releases/download/v1.2.4/TimestampConverter-1.2.4-SNAPSHOT.jar
+KUBECONFIG_PATH=/tmp/.${CLUSTER_NAME}-kubeconfig
+
 # Phony targets (not associated with files or directories)
 .PHONY: deploy kubeconfig download-plugin build-publisher-image build-consumer-image helm-install kafka-setup all clean
 
@@ -20,12 +22,14 @@ deploy:
 # Configure kubeconfig for EKS cluster
 kubeconfig:
 	@echo "Updating kubeconfig for cluster: $(CLUSTER_NAME)..."
-	if [ -e ".kubeconfig" ]; then \
-		rm .kubeconfig; \
+	@if [ -e "${KUBECONFIG_PATH}" ]; then \
+		rm "${KUBECONFIG_PATH}"; \
 	fi
-	touch .kubeconfig
-	aws eks update-kubeconfig --name $(CLUSTER_NAME) --kubeconfig .kubeconfig
-	export KUBECONFIG=.kubeconfig
+	@touch "${KUBECONFIG_PATH}"
+	@aws eks update-kubeconfig --name $(CLUSTER_NAME) --kubeconfig "${KUBECONFIG_PATH}"
+	
+	@echo "Run the bellow command in your current terminal"
+	export KUBECONFIG="${KUBECONFIG_PATH}"
 
 # Download and extract the Debezium PostgreSQL connector plugin
 download-plugin:
@@ -36,10 +40,20 @@ download-plugin:
 	tar -xzf connector/$(PLUGIN_FILE) -C connector/plugins/
 	curl -L $(TIMECONVERTER_URL) -o connector/plugins/debezium-connector-postgres/TimestampConverter.jar
 
+build-connect-image-for-pg:
+	@echo "PostgreSQL"
+	docker build infra/manifests/connectors/postgres -t $(DOCKER_REPO)/debezium-connect:postgres
+	docker push $(DOCKER_REPO)/debezium-connect:postgres
+
+build-connect-image-for-mysql:
+	@echo "MySQL"
+	docker build infra/manifests/connectors/mysql -t $(DOCKER_REPO)/debezium-connect:mysql
+	docker push $(DOCKER_REPO)/debezium-connect:mysql
+
 build-connect-image:
 	@echo "Building and pushing connect Docker image..."
-	docker build connector -t $(DOCKER_REPO)/debezium-postgres:4
-	docker push $(DOCKER_REPO)/debezium-postgres:4
+	${MAKE} build-connect-image-for-pg
+	${MAKE} build-connect-image-for-mysql
 
 # Build and push publisher Docker image
 build-publisher-image:
@@ -53,36 +67,13 @@ build-consumer-image:
 	docker build consumer -t $(DOCKER_REPO)/debezium-consumer
 	docker push $(DOCKER_REPO)/debezium-consumer
 
-# Install Strimzi Kafka operator using Helm
-helm-install:
-	@echo "Installing Strimzi Kafka operator..."
-	helm repo add strimzi https://strimzi.io/charts/
-	helm repo update
-	helm install strimzi-kafka-operator strimzi/strimzi-kafka-operator --namespace kafka --create-namespace
+EXEC_CMD=kubectl exec -it debezium-connect-cluster-connect-0 --
 
-# Set up Kafka cluster
-kafka-setup:
-	@echo "Setting up Storage Class..."
-	kubectl apply -f kafka/sc.yaml
+list-topics:
+	${EXEC_CMD} bin/kafka-topics.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --list
 
-	@echo "Setting up Kafka cluster..."
-	kubectl apply -f kafka/kafka-cluster.yaml -n kafka
-	kubectl apply -f kafka/pool.yaml -n kafka
-	kubectl wait kafka/my-cluster --for=condition=Ready --timeout=300s -n kafka
-	
-	@echo "Setting up ..."
-	kubectl apply -f kafka/db-role.yaml -n kafka
-	kubectl apply -f kafka/db-rolebinding.yaml -n kafka
-	kubectl apply -f kafka/db-secret.yaml -n kafka
-	
-	@echo "Setting up ..."
-	kubectl apply -f connector/debezium-connect.yaml -n kafka
-	kubectl apply -f connector/postgres-connector.yaml -n kafka
-
-
-
-# Convenience target to perform all actions
-all: deploy kubeconfig download-plugin build-publisher-image build-consumer-image helm-install kafka-setup
+consume-topics:
+	${EXEC_CMD} bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic my-topic --from-beginning
 
 # Clean up temporary files
 clean:
