@@ -1,8 +1,0 @@
-alertmanager:
-  enabled: false
-
-grafana:
-  adminPassword: admin
-
-nodeExporter:
-  enabled: false

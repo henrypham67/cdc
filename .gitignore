@@ -5,3 +5,4 @@ tf.auto.tfvars
 terraform.tfstate
 terraform.tfstate.backup
 plugins/
+.envrc

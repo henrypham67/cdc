@@ -18,15 +18,34 @@ spec:
         imagePullPolicy: Always
         env:
         - name: DB_HOST
-          value: "debezium-demo.c74k4egouhxc.us-east-1.rds.amazonaws.com"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: host
         - name: DB_PORT
-          value: "5432"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: host
         - name: DB_NAME
-          value: "postgres"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: db_name
         - name: DB_USER
-          value: "postgres"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
         - name: DB_PASSWORD
-          value: "nZh2mXMD9uRrXfJctV71"
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        resources:
+          limits:
+            cpu: "50m"
+            memory: "100Mi"
         command:
         - /bin/sh
         - -c
