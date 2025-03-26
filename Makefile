@@ -16,7 +16,7 @@ KUBECONFIG_PATH=.kubeconfig
 deploy:
 	@echo "Applying Terraform configuration..."
 	cd infra && \
-	terraform init && \
+	terraform init -upgrade && \
 	terraform apply --auto-approve
 
 # Configure kubeconfig for EKS cluster
