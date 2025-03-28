@@ -11,7 +11,8 @@ spec:
   config:
     topics: test_table.public.test_table
     iceberg.tables: test.table
-    iceberg.catalog.catalog-impl: org.apache.iceberg.aws.glue.GlueCatalog
+    iceberg.catalog.type: rest
+    iceberg.catalog.uri: http://iceberg-rest.kafka.svc.cluster.local:8181
     iceberg.catalog.warehouse: "s3://${AWS_S3_BUCKET}"
     iceberg.catalog.io-impl: org.apache.iceberg.aws.s3.S3FileIO
     iceberg.tables.auto-create-enabled: true
@@ -20,4 +21,3 @@ spec:
     key.converter: org.apache.kafka.connect.storage.StringConverter
     value.converter: org.apache.kafka.connect.json.JsonConverter
     value.converter.schemas.enable: false
-    # iceberg.write.flush-size: 1

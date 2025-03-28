@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iceberg-rest
+  namespace: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iceberg-rest
+  template:
+    metadata:
+      labels:
+        app: iceberg-rest
+    spec:
+      serviceAccountName: connector-configuration-role
+      containers:
+        - name: iceberg-rest
+          image: tabulario/iceberg-rest
+          ports:
+            - containerPort: 8181
+          resources:
+            limits:
+              cpu: 150m
+              memory: 1Gi
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: ${AWS_ACCESS_KEY_ID}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: ${AWS_SECRET_ACCESS_KEY}
+            - name: CATALOG_WAREHOUSE
+              value: ${AWS_S3_BUCKET}
+            - name: CATALOG_IO__IMPL
+              value: "org.apache.iceberg.aws.s3.S3FileIO"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iceberg-rest
+  namespace: kafka
+spec:
+  selector:
+    app: iceberg-rest
+  ports:
+    - protocol: TCP
+      port: 8181
+      targetPort: 8181
+  type: ClusterIP
