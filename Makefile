@@ -19,6 +19,10 @@ deploy:
 	terraform init -upgrade && \
 	terraform apply --auto-approve
 
+destroy:
+	cd infra && \
+	terraform destroy --auto-approve
+
 # Configure kubeconfig for EKS cluster
 kubeconfig:
 	@echo "Updating kubeconfig for cluster: $(CLUSTER_NAME)..."

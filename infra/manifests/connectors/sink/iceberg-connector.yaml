@@ -16,8 +16,8 @@ spec:
     iceberg.catalog.io-impl: org.apache.iceberg.aws.s3.S3FileIO
     iceberg.tables.auto-create-enabled: true
     iceberg.tables.evolve-schema-enabled: true
-    iceberg.control.commit.interval-ms: 300000
+    iceberg.control.commit.interval-ms: 10000 # 300000
     key.converter: org.apache.kafka.connect.storage.StringConverter
     value.converter: org.apache.kafka.connect.json.JsonConverter
     value.converter.schemas.enable: false
-    iceberg.write.flush-size: 1
+    # iceberg.write.flush-size: 1
